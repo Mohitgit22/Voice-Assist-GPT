@@ -16,14 +16,6 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 
-
-//node readline package
-// import * as readline from 'node:readline/promises';
-// import { stdin as input, stdout as output } from 'node:process';
-
-// const rl = readline.createInterface({ input, output });
-
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 
@@ -64,14 +56,3 @@ async function main(input) {
     return chatCompletion.choices[0]?.message?.content;
 }
 
-//main();
-
-// rl.on('line', (input) => {
-//     console.log(`Received: ${input}`);
-//     if (input == "q") {
-//         rl.close();
-//     }
-//     main(input);
-// });
-
-//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
