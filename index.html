@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>Voice Assistant</title>
+    <style>
+        .container {
+            min-height: 30vh;
+            background: #f5f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 61px auto;
+            border-radius: 12px;
+        }
+
+        .chats {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        hr {
+            margin-left: 0;
+            margin-right: 0;
+            width: 100%;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #333;
+            color: white;
+            padding: 10px 10px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            margin: 0;
+        }
+
+        .navbar ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .navbar ul li {
+            margin-right: 20px;
+        }
+
+        .navbar ul li:last-child {
+            margin-right: 0;
+        }
+
+        .navbar ul li a {
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .navbar ul li a:hover {
+            background-color: #555;
+        }
+
+        .container-1 {
+            text-align: center;
+            margin-top: 60px;
+            /* Adjust to give space for the navbar */
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        /* .microphone {
+            width: 2px;
+            height: 2px;
+            size: 2vh 2vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            margin-left: 50%;
+        } */
+        /* 
+        .microphone:hover {
+            background-color: #111011;
+        } */
+
+        /* .microphone img {
+            width: 60px;
+            height: 60px;
+            justify-content: center;
+            align-items: center;
+        } */
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .button-container button {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <h1>ChatGPT-VoiceAssist</h1>
+        <ul>
+            <li><a href="#">ChatGPT</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Others</a></li>
+        </ul>
+    </div>
+
+    <div class="container-1">
+        <h1>Voice Assistant</h1>
+
+
+        <div class="button-container">
+            <button id="start" type="button" class="btn btn-success">Start</button>
+            <button type="button" class="btn btn-success">Stop</button>
+        </div>
+
+        <div class="container chats">
+            <h2>Your Responses</h2>
+
+            <div>Question: Your Question</div>
+            <div>Answer: Response will appear here</div>
+            <hr>
+
+        </div>
+    </div>
+
+    <script>
+        async function postData(url = "", data = {}) {
+            const response = await fetch(url, {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify(data),
+            });
+            return response.json();
+        }
+
+        const IncomingUsingGpt = (input)=>{  
+      postData("/api", { input: input }).then((data) => {
+        document.querySelector(".chats").innerHTML = document.querySelector(".chats").innerHTML + `<div>Question: ${input}</div>
+          <div>Answer: ${data.message}</div> 
+      <hr>`
+        });
+    }
+
+
+    let spoken = true;
+    let globalTranscript;
+    window.SpeechRecognition = window.SpeechRecognition ||window.webkitSpeechRecognition;
+
+    const recognition = new SpeechRecognition();
+    recognition.interimResults = true;//When interimResults is true, the recognition object will continuously return interim results (partial recognition) before the final result is available.
+
+    recognition.addEventListener('result', e => {
+           const transcript = Array.from(e.results)
+           .map(result => result[0])
+           .map(result => result.transcript)
+           .join('')
+
+           globalTranscript = transcript
+           //spoken is inserted into globaltranscript
+    });
+
+    start.addEventListener("click", () => {
+        if(spoken == true) {
+            recognition.start();
+            recognition.addEventListener('end', () => {
+                console.log(globalTranscript);
+                if(globalTranscript !== " ") {
+                    IncomingUsingGpt(globalTranscript)
+                }
+                globalTranscript = "";
+            });
+        }
+    })
+
+
+ //   This line adds an event listener to the recognition object for the 'result' event. This event is fired when the recognition engine has detected speech. The callback function processes the recognition results.
+
+ //Array.from(e.results): Converts the e.results array-like object into an array.
+//.map(result => result[0]): Maps over each result in the array and extracts the first item of each result. This is necessary because each result is actually a SpeechRecognitionResultList, and we're interested in the first result.
+//.map(result => result.transcript): Maps over the array of first results and extracts the transcript property from each result. This property contains the recognized speech as a string.
+//.join(''): Joins all the recognized speech strings into a single string.
+//globalTranscript = transcript: Assigns the concatenated transcript to the globalTranscript variable, making it available outside the event listener scope.
+
+    </script>
+</body>
+
+</html>
